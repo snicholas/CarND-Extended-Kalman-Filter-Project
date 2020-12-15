@@ -36,22 +36,37 @@ FusionEKF::FusionEKF() {
    * TODO: Finish initializing the FusionEKF.
    * TODO: Set the process and measurement noises
    */
+
+  H_laser_ << 1, 0, 0, 0,
+              0, 1, 0, 0;
+
+  Hj_ << 1, 1, 0, 0,
+         1, 1, 0, 0,
+         1, 1, 1, 1; 
+
   noise_ax_ = 9.0;
   noise_ay_ = 9.0;
 
   VectorXd x = VectorXd(4);
-  x << 0.0, 0.0, 1.0, 1.0;
+  x << 0, 0, 1, 1;
 
   // the initial transition matrix F_
   MatrixXd F = MatrixXd(4, 4);
-  F <<    1, 0, 0.5, 0,
-          0, 1, 0, 0.5,
+  F <<    1, 0, 1, 0,
+          0, 1, 0, 1,
           0, 0, 1, 0,
           0, 0, 0, 1;
 
   MatrixXd Q = MatrixXd::Zero(4, 4);
+  Q << 0, 0, 0, 0,
+       0, 0, 0, 0,
+       0, 0, 0, 0,
+       0, 0, 0, 0;
   MatrixXd P = MatrixXd::Zero(4, 4);
-
+  P <<  1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1;
   ekf_.Init(x, P, F, H_laser_, R_laser_, Q);
 }
 
@@ -78,12 +93,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       float py = sin(theta) * ro;
       float vx = cos(theta) * ro_dot;
       float vy = sin(theta) * ro_dot;
-
       ekf_.P_ <<  1, 0, 0, 0,
                   0, 1, 0, 0,
                   0, 0, 1, 0,
                   0, 0, 0, 1;
-
       ekf_.x_ << px, py, vx, vy;
 
     }
@@ -92,11 +105,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       float py = measurement_pack.raw_measurements_[1];
 
       // we are uncertain about the speed
+      
       ekf_.P_ <<  1, 0, 0, 0,
                   0, 1, 0, 0,
                   0, 0, 1000, 0,
                   0, 0, 0, 1000;
-
       ekf_.x_ << px, py, 0, 0;
 
     }
@@ -120,10 +133,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   double dt2 = dt * dt;
   double dt3 = dt * dt2;
   double dt4 = dt * dt3;
-  double dt4nax4 = dt4 * noise_ax_ / 4;
-  double dt4nay4 = dt4 * noise_ay_ / 4;
-  double dt3nax2 = dt3 * noise_ax_ / 2;
-  double dt3nay2 = dt3 * noise_ay_ / 2;
+  double dt4nax4 = dt4  * noise_ax_/ 4 ;
+  double dt4nay4 = dt4  * noise_ay_/ 4;
+  double dt3nax2 = dt3  * noise_ax_ / 2;
+  double dt3nay2 = dt3  * noise_ay_ / 2;
   double dt2ax= dt2 * noise_ax_;
   double dt2ay= dt2 * noise_ay_;
 

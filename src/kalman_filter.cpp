@@ -1,4 +1,7 @@
 #include "kalman_filter.h"
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <iostream>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -20,7 +23,6 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
   H_ = H_in;
   R_ = R_in;
   Q_ = Q_in;
-  I_ = MatrixXd::Identity(P_.rows(), P_.cols());
 }
 
 void KalmanFilter::Predict() {
@@ -30,7 +32,7 @@ void KalmanFilter::Predict() {
 
 void KalmanFilter::Update(const VectorXd &z) {
   VectorXd y = z - H_*x_;
-	CommonUpdate(y);
+  CommonUpdate(y);
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
@@ -40,22 +42,20 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   float vy = x_(3);
 
   double rho = sqrt(px*px + py*py);
-  if (rho < .00001) {
+  double rho_dot = 0;
+  if (fabs(rho) < 0.00001) {
     px += .001;
     py += .001;
     rho = sqrt(px*px + py*py);
-  }
+  } 
+  rho_dot = (px*vx + py*vy)/rho;
   double theta = atan2(py , px);
-  double rho_dot = (px*vx + py*vy) / rho;
   VectorXd h = VectorXd(3);
   h << rho, theta, rho_dot;
 
   VectorXd y = z - h;
-  float pi = 3.14159;
-  // make sure that the angle is between -pi and pi
-  for (; y(1) < -pi; y(1) += 2*pi) {}
-  for (; y(1) >  pi; y(1) -= 2*pi) {}
-
+  for (; y(1) < -M_PI; y(1) += 2*M_PI) {}
+  for (; y(1) >  M_PI; y(1) -= 2*M_PI) {}
   CommonUpdate(y);
 
 }
@@ -65,5 +65,6 @@ void KalmanFilter::CommonUpdate(const VectorXd &y) {
   MatrixXd S = H_ * PHt + R_;
   MatrixXd K = PHt * S.inverse();
   x_ = x_ + (K * y);
+  I_ = MatrixXd::Identity(x_.size(), x_.size());
   P_ = (I_ - K * H_) * P_;
 }

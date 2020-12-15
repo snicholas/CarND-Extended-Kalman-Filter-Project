@@ -14,7 +14,7 @@ Tools::~Tools() {}
 VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
                               const vector<VectorXd> &ground_truth) {
   VectorXd rmse(4);
-  rmse << 0,0,0,0;
+  rmse << 0.0,0.0,0.0,0.0;
 
   if(estimations.size()==0 || estimations.size()!=ground_truth.size()){
       cout << "Error: estimation vector and ground truth vector must be larger than 0 and equal sized" << endl;
@@ -42,20 +42,15 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 
   float px2py2=pow(px,2)+pow(py,2);
   float spx2py2=sqrt(px2py2);
-  float px2py2_32=pow(px2py2,3/2);
+  float px2py2_32=px2py2*spx2py2;
   // check division by zero
   // taken from lesson solution
   if(fabs(px2py2) < 0.0001){
       cout << "Error: Division by Zero"<<endl;
   }
   
-  Hj(0,0)=px/spx2py2;
-  Hj(0,1)=py/spx2py2;
-  Hj(1,0)=-py/px2py2;
-  Hj(1,1)=px/px2py2;
-  Hj(2,0)=py*(vx*py - vy*px)/px2py2_32;
-  Hj(2,1)=px*(vy*px - vx*py)/px2py2_32;
-  Hj(2,2)=px/spx2py2;
-  Hj(2,3)=py/spx2py2;
+  Hj << px/spx2py2, py/spx2py2, 0, 0,
+        -py/px2py2, px/px2py2, 0, 0,
+        py*(vx*py - vy*px)/px2py2_32, px*(vy*px - vx*py)/px2py2_32, px/spx2py2, py/spx2py2;
   return Hj;
 }
