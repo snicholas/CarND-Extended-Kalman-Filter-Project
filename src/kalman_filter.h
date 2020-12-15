@@ -46,6 +46,11 @@ class KalmanFilter {
    */
   void UpdateEKF(const Eigen::VectorXd &z);
 
+  /**
+   * Common update for both Update and UpdateEKF methods.
+   * @param y 
+   */
+  void CommonUpdate(const Eigen::VectorXd &y); 
   // state vector
   Eigen::VectorXd x_;
 
@@ -63,6 +68,8 @@ class KalmanFilter {
 
   // measurement covariance matrix
   Eigen::MatrixXd R_;
+
+  Eigen::MatrixXd I_;
 };
 
 #endif // KALMAN_FILTER_H_
